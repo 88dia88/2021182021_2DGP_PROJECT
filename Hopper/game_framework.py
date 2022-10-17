@@ -9,6 +9,7 @@ class GameState:
         self.draw = state.draw
 
 
+
 class TestGameState:
 
     def __init__(self, name):
@@ -36,9 +37,17 @@ class TestGameState:
         print("State [%s] draw" % self.name)
 
 
-running = None
-stack = None
 
+running = None
+stack = []
+
+
+
+def get_prev_state():
+    try:
+        return stack[-2]
+    except:
+        return None
 
 def change_state(state):
     global stack
@@ -51,12 +60,14 @@ def change_state(state):
     state.enter()
 
 
+
 def push_state(state):
     global stack
     if (len(stack) > 0):
         stack[-1].pause()
     stack.append(state)
     state.enter()
+
 
 
 def pop_state():
@@ -72,17 +83,29 @@ def pop_state():
         stack[-1].resume()
 
 
+
 def quit():
     global running
     running = False
 
 
+# pree fill statck with previous states
+def fill_states(*states):
+    for state in states:
+        stack.append(state)
+
 def run(start_state):
     global running, stack
     running = True
-    stack = [start_state]
-    start_state.enter()
-    while (running):
+
+    # prepare previous states if any
+    for state in stack:
+        state.enter()
+        state.pause()
+
+    stack.append(start_state)
+    stack[-1].enter()
+    while running:
         stack[-1].handle_events()
         stack[-1].update()
         stack[-1].draw()
@@ -95,6 +118,7 @@ def run(start_state):
 def test_game_framework():
     start_state = TestGameState('StartState')
     run(start_state)
+
 
 
 if __name__ == '__main__':
